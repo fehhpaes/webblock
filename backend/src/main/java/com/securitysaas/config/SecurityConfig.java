@@ -39,7 +39,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health/**").permitAll()
                 .requestMatchers("/api/agent/**").hasAnyRole("AGENT", "ADMIN")
                 .requestMatchers("/api/ambiente/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

@@ -1,0 +1,13 @@
+package com.securitysaas;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+@SpringBootApplication
+@EnableAsync(proxyTargetClass = true)
+public class SecuritySaasApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SecuritySaasApplication.class, args);
+    }
+}

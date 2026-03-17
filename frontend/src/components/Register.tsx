@@ -1,33 +1,34 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, UserPlus } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
-export default function Login() {
+export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { token } = response.data;
-      
-      // Armazena no localStorage
-      localStorage.setItem('saas_admin_token', token);
-      
-      // Configura o Axios pra mandar em todas as próximas chamadas
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      navigate('/');
-    } catch (err) {
-      setError('Credenciais inválidas. Tente admin@empresa.com / admin123');
+      await axios.post('/api/auth/register', { email, password });
+      setSuccess('Conta criada com sucesso! Você já pode fazer login.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        setError(err.response.data);
+      } else {
+        setError('Ocorreu um erro ao criar a conta. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -38,20 +39,25 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
         <div>
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
-            <ShieldCheck className="w-10 h-10 text-white" />
+            <UserPlus className="w-10 h-10 text-white" />
           </div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900 tracking-tight">
-            Security SaaS Admin
+            Criar Conta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Acesso restrito a gestores corporativos
+            Cadastre-se para acessar o painel corporativo
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+        <form className="mt-8 space-y-6" onSubmit={handleRegister}>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100 text-center">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm font-medium border border-green-100 text-center">
+              {success}
             </div>
           )}
           
@@ -66,7 +72,7 @@ export default function Login() {
                   type="email"
                   required
                   className="appearance-none rounded-xl relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="Seu E-mail (admin@empresa.com)"
+                  placeholder="Seu E-mail Corporativo"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -81,8 +87,9 @@ export default function Login() {
                 <input
                   type="password"
                   required
+                  minLength={6}
                   className="appearance-none rounded-xl relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="Senha (admin123)"
+                  placeholder="Defina uma senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -93,22 +100,19 @@ export default function Login() {
           <div>
             <button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all disabled:opacity-70 flex items-center gap-2"
+              disabled={loading || !!success}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all disabled:opacity-70 flex items-center gap-2"
             >
-              {loading ? 'Autenticando...' : 'Entrar no Sistema'}
+              {loading ? 'Cadastrando...' : 'Criar Conta'}
               {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
             </button>
           </div>
         </form>
         
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-600">
-            Ainda não tem acesso?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-              Criar conta
-            </Link>
-          </p>
+        <div className="text-center mt-4">
+          <Link to="/login" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+            Já possui uma conta? Entrar
+          </Link>
         </div>
       </div>
     </div>

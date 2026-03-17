@@ -1,5 +1,7 @@
 package com.securitysaas.web.controller;
 
+import com.securitysaas.domain.User;
+import com.securitysaas.repository.UserRepository;
 import com.securitysaas.security.JwtUtil;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
@@ -7,28 +9,52 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    // Senha 'admin123' em BCrypt gerada previamente
-    private final String MOCK_ADMIN_HASH = "$2a$10$Txb52/Uyd/6SPOB2Q3CqG.kK1OofX.K6H6Wvj1rP9tN4gMlypC3pW";
-
-    public AuthController(JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
+    public AuthController(JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody LoginRequest request) {
+        if (request.getEmail() == null || request.getPassword() == null) {
+            return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
+        }
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Este e-mail já está em uso.");
+        }
+
+        User newUser = new User();
+        newUser.setEmail(request.getEmail());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(newUser);
+
+        return ResponseEntity.ok("Usuário cadastrado com sucesso.");
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginAdmin(@RequestBody LoginRequest request) {
-        // Validação da senha com BCrypt
-        if ("admin@empresa.com".equals(request.getEmail()) && passwordEncoder.matches(request.getPassword(), MOCK_ADMIN_HASH)) {
-            String token = jwtUtil.generateAdminToken(request.getEmail());
-            return ResponseEntity.ok(new AuthResponse(token));
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                String token = jwtUtil.generateAdminToken(user.getEmail());
+                return ResponseEntity.ok(new AuthResponse(token));
+            }
         }
+        
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 

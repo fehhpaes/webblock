@@ -4,6 +4,8 @@ import axios from 'axios';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 
+import Register from './components/Register';
+
 // Configura o Interceptor global do Axios para injetar o Token
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
 
@@ -51,6 +53,7 @@ function App() {
       <GlobalAxiosInterceptor>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/*" element={
             <PrivateRoute>
               <div className="min-h-screen bg-gray-50 flex flex-col">

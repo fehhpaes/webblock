@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 
 // Configura o Interceptor global do Axios para injetar o Token
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('saas_admin_token');
   if (token) {

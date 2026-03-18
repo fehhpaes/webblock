@@ -10,8 +10,9 @@ import java.util.List;
 public class Ambiente {
     @Id
     private String id;
-    private String empresaId;
+    private String userId; // Quem é o criador/dono dessa sala
     private String nome;
+    private String installKey; // Chave secreta usada pelo agente para se registrar
     private List<String> sitesBloqueados; 
     private Integer intervaloPing; 
 }

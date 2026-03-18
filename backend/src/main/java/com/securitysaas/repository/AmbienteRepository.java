@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface AmbienteRepository extends MongoRepository<Ambiente, String> {
-    List<Ambiente> findByEmpresaId(String empresaId);
+    List<Ambiente> findByUserId(String userId);
 }

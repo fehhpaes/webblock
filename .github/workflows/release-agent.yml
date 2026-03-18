@@ -1,0 +1,68 @@
+name: Build Agent & Publish Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'agent/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Windows .exe and create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: agent
+        run: npm ci
+
+      - name: Compile TypeScript
+        working-directory: agent
+        run: npm run build
+
+      - name: Package into Windows executable
+        working-directory: agent
+        run: npx pkg . --targets node18-win-x64 --output dist/webblock-agent.exe
+
+      - name: Get version from package.json
+        id: version
+        working-directory: agent
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Get short commit SHA
+        id: sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "agent-v${{ steps.version.outputs.version }}-${{ steps.sha.outputs.sha }}"
+          name: "WebBlock Agent v${{ steps.version.outputs.version }} (${{ steps.sha.outputs.sha }})"
+          body: |
+            ## WebBlock Agent - Instalador Windows
+
+            ### 📥 Como instalar:
+            1. Baixe `webblock-agent.exe` e o `install-agent.bat` (na pasta `agent/` do repositório)
+            2. Coloque os dois arquivos na mesma pasta
+            3. Execute `install-agent.bat` como **Administrador**
+            4. Siga as instruções: informe o email/senha admin e selecione a sala
+
+            ### Alterações neste build:
+            - Commit: `${{ steps.sha.outputs.sha }}`
+            - Branch: `main`
+          files: |
+            agent/dist/webblock-agent.exe
+          draft: false
+          prerelease: false
